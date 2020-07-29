@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import configparser
 import sys
 from argparse import ArgumentParser
 import os
@@ -12,6 +13,7 @@ RootDir = "."
 Sources = []  # type: List[str]
 Blacklist = []
 FileWhitelist = []
+SkipShodan = False
 DownloadOnly = False
 Args = None
 reloadHandlers = []
@@ -91,6 +93,27 @@ def start_stdin_handler_loop():
     t.start()
 
 
+def prepare_lists():
+    from shodan import Shodan
+    import configparser
+
+    config = configparser.ConfigParser()
+    config.read(RootDir + "/config.txt")
+    shodan_key = config['credentials']['SHODAN_API_KEY']
+    pages = config['configuration']['PAGES']
+    dork =  config['configuration']['DORK']
+
+    api = Shodan(shodan_key)
+    IPs = []
+
+    for i in pages:
+        results = ([l['ip_str'] for l in api.search(dork)['matches']])
+        IPs += results
+    with open(RootDir + "/sources.txt", mode="w") as sourcelist:
+        for IP in IPs:
+            sourcelist.write("ftp://{}\n".format(IP))
+
+
 def setup_lists():
     import Logging
     main.Sources = [l for l in open(RootDir + "/sources.txt").read().splitlines() if l and not l.startswith("#")]
@@ -142,6 +165,7 @@ def setup(*raw_arg_list):
     arg_parser.add_argument("--dir", default=os.getcwd())
     arg_parser.add_argument("--numWorkers", type=int)
     arg_parser.add_argument("--shell", action="store_true")
+    arg_parser.add_argument("--skipShodan", action="store_true")
     arg_parser.add_argument("--downloadRemaining", action="store_true")
     global Args
     Args = arg_parser.parse_args(raw_arg_list)
@@ -156,6 +180,10 @@ def setup(*raw_arg_list):
     import main
     main.RootDir = Args.dir
     Logging.log("root dir: %s" % RootDir)
+
+    main.SkipShodan = Args.skipShodan
+    if not main.SkipShodan:
+        prepare_lists()
 
     main.DownloadOnly = Args.downloadRemaining
     if not main.DownloadOnly:

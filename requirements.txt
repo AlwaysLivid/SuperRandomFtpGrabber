@@ -1,3 +1,4 @@
 beautifulsoup4
 urllib3
 better_exchook
+shodan
