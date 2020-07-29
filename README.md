@@ -1,42 +1,38 @@
-# Random FTP grabber
+# Super Random FTP grabber
 
 Situation:
-You have various file servers with interesting stuff,
-too much which you can possibly download,
-and most of the stuff you never heard about so you
-cannot tell how much it is of interest,
-but you still want to download a good set of files.
+There is a chance that you may want to download a
+sum off files from specific FTP servers, but what
+if you just want to download random file collections
+from exposed FTP servers online that you're not even
+aware of for no apparent reason whatsoever?
 
-(A common such situation is if you are on a
-Hacker Conference like the Chaos Communication Congress/Camp.)
-
-A totally random sampling might already be a good enough
-representation, but we might be able to improve slightly.
-
-A bit tricky is if there are multiple-parts
-which belong together - they should be grabbed together.
-
+This fork of [RandomFtpGrabber](https://github.com/albertz/RandomFtpGrabber) solves this
+very specific problem for you!
 
 ## Usage
 
-Go into the directory where you want to download to.
+* Configure `config.txt` and enter your desired options and credentials.
 
-    echo "ftp://bla/blub1" >> sources.txt
-    echo "ftp://blub/bla2" >> sources.txt
-    mkdir downloads
-    RandomFtpGrabber/main.py
+    This file contains Shodan-specific configurations.
+    
+    - `SHODAN_API_KEY` stands for your [account's API key](https://account.shodan.io/).
+    - `DORK` stands for the search query. The default query is meant to look up FTP servers that are meant to be accessible to the public.
+    - `PAGES` is the amount of pages that this tool will request from Shodan.
+    
+    Please note that each page stands for 100 individual results (IPs) and using more than 1 page will use one query credit.
 
-It will create some `*.db` files, e.g. `index.db`, where
-it saves its current state, so when you kill it and restart it,
-it should resume everything, all running downloads and the lazy
-indexing.
+* This program stores `*.db` files (e.g. `index.db`) in order to store
+  its current state and resume the downloads from where you left it off.
 
+    - If you used this tool recently, you may want to use `--skipShodan` in order to avoid downloading files from the same sources again.
 
-## Details
+## Specifications
 
 * Python 3.
+* Uses the [Shodan](https://shodan.io) (`shodan`) API. (May require membership/subscription)
 * Downloads via `wget`.
-* Provide a list of source URLs in the file `./sources.txt`.
+* Fills out a list of source URLs in the file `./sources.txt`, which you can also extend by yourself.
 * Lazy random sampled indexing of the files.
 It doesn't build a full index in the beginning, it rather randomly
 browses through the given sources and randomly selects files for download.
@@ -54,49 +50,7 @@ and will recover it on restart, thus it will resume all current actions such as 
 See [`Persistence`](https://github.com/albertz/RandomFtpGrabber/blob/master/Persistence.py)
 for details on the implementation.
 
+## Authors
 
-## Plan
-
-For found files, it should run some detection whether it should be downloaded
-(or how to prioritize certain files more than others).
-
-Via the [Python module `guessit`](https://pypi.python.org/pypi/guessit),
-we can extract useful information just from
-the filename - works well for movies, episodes or music.
-
-We can then use IMDb to get some more information for movies.
-The [Python module `IMDbPY`](http://imdbpy.sourceforge.net/)
-might be useful for this case
-(although it doesn't support Python 3 yet - see
-[here](https://github.com/alberanid/imdbpy/issues/17)).
-Then, also [this](http://stackoverflow.com/questions/5342329/can-i-retrieve-imdbs-movie-recommendations-for-a-given-movie-using-imdbpy) is relevant.
-
-Some movie recommendation engine can then be useful.
-
-There also could be some movie blacklist. I don't want to download
-movies which I already have seen.
-
-There could be other filters.
-
-Maybe better scraping and web crawling via [Scrapy](http://scrapy.org/).
-
-
-## Contribute
-
-Do you want to hack on it?
-You are very welcome!
-
-About the plans, just contact me so we can do some brainstorming.
-
-Want to support some new protocol?
-Modify [`FileSysIntf`](https://github.com/albertz/RandomFtpGrabber/blob/master/FileSysIntf.py)
-for the indexing
-and [`Downloader`](https://github.com/albertz/RandomFtpGrabber/blob/master/Downloader.py)
-for the download logic, although this might already work because it
-just uses `wget` for everything.
-
-
-## Author
-
-Albert Zeyer, [albzey@gmail.com](mailto:albzey@gmail.com).
-
+* Albert Zeyer, [albzey@gmail.com](mailto:albzey@gmail.com).
+* Panagiotis Vasilopoulos, hello [@] alwayslivid.com.
